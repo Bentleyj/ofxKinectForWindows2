@@ -19,6 +19,8 @@ namespace ofxKinectForWindows2 {
 			void drawBodies();
 			void drawFloor();
 			void drawProjected(int x, int y, int width, int height, ProjectionCoordinates proj = ColorCamera);
+			map<JointType, ofVec3f> getPositions3D(int _trackingId);
+			std::vector<std::map<JointType, ofVec2f>> getProjected(int x, int y, int width, int height, ProjectionCoordinates proj);
 
 			IBodyFrameReader * getReader();
 			const vector<Data::Body> & getBodies() const;

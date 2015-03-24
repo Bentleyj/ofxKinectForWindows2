@@ -228,6 +228,60 @@ namespace ofxKinectForWindows2 {
 		}
 
 		//----------
+		map<JointType, ofVec3f> Body::getPositions3D(int _trackingId) {
+			map<JointType, ofVec3f> jntsProj;
+			for (auto & body : bodies) {
+				if (body.trackingId == _trackingId) {
+					for (auto & j : body.joints) {
+						ofVec3f & p = jntsProj[j.second.getType()] = ofVec3f();
+
+						TrackingState state = j.second.getTrackingState();
+						if (state == TrackingState_NotTracked) continue;
+
+						p.set(j.second.getPosition());
+						p.x = ofMap(p.x, -1, 1, 0, ofGetWidth()); //MAGIC NUMBERS!!!
+						p.y =  ofMap(p.y, 1, -1, 0, ofGetHeight()); //MAGIC NUMBERS!!!
+						p.z = ofMap(p.z, 0, 1, 100, -100); //MAGIC NUMBERS!!!
+					}
+				}
+			}
+			return jntsProj;
+		}
+
+				//----------
+		std::vector<std::map<JointType, ofVec2f>> Body::getProjected(int x, int y, int width, int height, ProjectionCoordinates proj) {
+			
+			std::vector<std::map<JointType, ofVec2f>> returnVec;
+
+			int w, h;
+			switch (proj) {
+			case ColorCamera: w = 1920; h = 1080; break;
+			case DepthCamera: w = 512; h = 424; break;
+			}
+
+			for (auto & body : bodies) {
+				if (!body.tracked) continue;
+
+				map<JointType, ofVec2f> jntsProj;
+
+				for (auto & j : body.joints) {
+					ofVec2f & p = jntsProj[j.second.getType()] = ofVec2f();
+
+					TrackingState state = j.second.getTrackingState();
+					if (state == TrackingState_NotTracked) continue;
+
+					p.set(j.second.getProjected(coordinateMapper, proj));
+					p.x = x + p.x / w * width;
+					p.y = y + p.y / h * height;
+				}
+				returnVec.push_back(jntsProj);
+			}
+
+			return returnVec;
+
+		}
+
+		//----------
 		void Body::drawProjected(int x, int y, int width, int height, ProjectionCoordinates proj) {
 			ofPushStyle();
 			int w, h;
